@@ -106,14 +106,14 @@ export async function listConnections(req: Request, res: Response) {
       OR: [{ requesterId: userId }, { addresseeId: userId }],
     },
     include: {
-      requester: { select: { id: true, name: true, email: true, profile: true } },
-      addressee: { select: { id: true, name: true, email: true, profile: true } },
+      requester: { select: { id: true, name: true, profile: true } },
+      addressee: { select: { id: true, name: true, profile: true } },
     },
     orderBy: { updatedAt: "desc" },
   });
 
   // Flatten so the client always gets "the other person", regardless of who initiated
-  const results = connections.map((c) => ({
+  const results = connections.map((c: (typeof connections)[number]) => ({
     connectionId: c.id,
     connectedSince: c.updatedAt,
     user: c.requesterId === userId ? c.addressee : c.requester,
@@ -129,13 +129,13 @@ export async function listPendingRequests(req: Request, res: Response) {
   const pending = await prisma.connection.findMany({
     where: { addresseeId: userId, status: "PENDING" },
     include: {
-      requester: { select: { id: true, name: true, email: true, profile: true } },
+      requester: { select: { id: true, name: true, profile: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
   return res.json({
-    requests: pending.map((p) => ({
+    requests: pending.map((p: (typeof pending)[number]) => ({
       connectionId: p.id,
       requestedAt: p.createdAt,
       user: p.requester,
@@ -150,13 +150,13 @@ export async function listSentRequests(req: Request, res: Response) {
   const sent = await prisma.connection.findMany({
     where: { requesterId: userId, status: "PENDING" },
     include: {
-      addressee: { select: { id: true, name: true, email: true, profile: true } },
+      addressee: { select: { id: true, name: true, profile: true } },
     },
     orderBy: { createdAt: "desc" },
   });
 
   return res.json({
-    requests: sent.map((s) => ({
+    requests: sent.map((s: (typeof sent)[number]) => ({
       connectionId: s.id,
       requestedAt: s.createdAt,
       user: s.addressee,

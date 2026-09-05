@@ -21,8 +21,11 @@ export async function getMyProfile(req: Request, res: Response) {
 export async function updateMyProfile(req: Request, res: Response) {
   const data = updateProfileSchema.parse(req.body);
   const { name, ...profileFields } = data;
+  if (profileFields.avatarUrl === "") {
+    profileFields.avatarUrl = null as unknown as string;
+  }
 
-  const [user] = await prisma.$transaction([
+  const [user, profile] = await prisma.$transaction([
     prisma.user.update({
       where: { id: req.user!.userId },
       data: name ? { name } : {},
@@ -34,8 +37,6 @@ export async function updateMyProfile(req: Request, res: Response) {
       create: { userId: req.user!.userId, ...profileFields },
     }),
   ]);
-
-  const profile = await prisma.profile.findUnique({ where: { userId: req.user!.userId } });
 
   return res.json({ user: { ...user, profile } });
 }
@@ -66,7 +67,11 @@ export async function searchUsers(req: Request, res: Response) {
         { email: { contains: q, mode: "insensitive" } },
       ],
     },
-    select: { id: true, name: true, email: true, profile: true },
+    // Note: email is intentionally NOT selected here. It's still matched
+    // against in the OR clause below so search-by-email still works, but any
+    // authenticated user being able to read back other users' emails would
+    // turn this endpoint into an email enumeration tool.
+    select: { id: true, name: true, profile: true },
     take: 20,
   });
 
