@@ -57,7 +57,7 @@ export async function sendConnectionRequest(req: Request, res: Response) {
 
 // PATCH /connections/:id — accept or reject an incoming request
 export async function respondToConnectionRequest(req: Request, res: Response) {
-  const { id } = req.params;
+  const id = req.params.id as string; 
   const { action } = respondSchema.parse(req.body);
   const userId = req.user!.userId;
 
@@ -82,7 +82,7 @@ export async function respondToConnectionRequest(req: Request, res: Response) {
 
 // DELETE /connections/:id — remove an existing accepted connection (either side)
 export async function removeConnection(req: Request, res: Response) {
-  const { id } = req.params;
+  const id = req.params.id as string; 
   const userId = req.user!.userId;
 
   const connection = await prisma.connection.findUnique({ where: { id } });
@@ -143,7 +143,7 @@ export async function listPendingRequests(req: Request, res: Response) {
   });
 }
 
-// GET /connections/sent — outgoing requests the current user is waiting on
+// outgoing requests the current user is waiting on
 export async function listSentRequests(req: Request, res: Response) {
   const userId = req.user!.userId;
 

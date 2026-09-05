@@ -67,12 +67,6 @@ export async function login(req: Request, res: Response) {
   });
 }
 
-// POST /auth/refresh — verifies the refresh token AND its DB session, then
-// rotates: the old session is revoked and a brand new one is issued. This
-// means a stolen refresh token can only be "replayed" once before either the
-// legitimate user or the attacker's next refresh call fails, which is a
-// signal you could use to revoke the whole session family if you want to
-// take this further later.
 export async function refresh(req: Request, res: Response) {
   const { refreshToken } = refreshSchema.parse(req.body);
 
@@ -85,9 +79,7 @@ export async function refresh(req: Request, res: Response) {
 
   const session = await getActiveRefreshSession(payload);
   if (!session) {
-    // Covers: never issued, already used (rotated away), revoked by logout,
-    // or past its 24h expiry — all treated identically to the caller.
-    throw new AppError("Invalid or expired refresh token", 401);
+  throw new AppError("Invalid or expired refresh token", 401);
   }
 
   const user = await prisma.user.findUnique({ where: { id: payload.userId } });
@@ -102,12 +94,6 @@ export async function refresh(req: Request, res: Response) {
 
   return res.json({ accessToken, refreshToken: newRefreshToken });
 }
-
-// POST /auth/logout — kills the refresh session server-side. After this, the
-// refresh token in the request body can never be used again to mint new
-// access tokens, so the client is forced to log in again. Simply minimizing
-// the app or letting the access token expire does NOT hit this route, so
-// those cases leave the 24h refresh session untouched, exactly as intended.
 export async function logout(req: Request, res: Response) {
   const { refreshToken } = refreshSchema.parse(req.body);
 
@@ -115,8 +101,6 @@ export async function logout(req: Request, res: Response) {
     const payload = verifyRefreshToken(refreshToken);
     await revokeRefreshToken(payload.jti);
   } catch {
-    // Token was already invalid/expired/malformed — logout is still a
-    // success from the client's point of view, there's nothing left to kill.
   }
 
   return res.status(200).json({ message: "Logged out successfully" });

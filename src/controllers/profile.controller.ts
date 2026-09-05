@@ -43,7 +43,7 @@ export async function updateMyProfile(req: Request, res: Response) {
 
 // Public-facing profile — used when viewing another user before connecting
 export async function getUserById(req: Request, res: Response) {
-  const { id } = req.params;
+  const id = req.params.id as string; 
   const user = await prisma.user.findUnique({
     where: { id },
     select: { id: true, name: true, createdAt: true, profile: true },
@@ -67,10 +67,7 @@ export async function searchUsers(req: Request, res: Response) {
         { email: { contains: q, mode: "insensitive" } },
       ],
     },
-    // Note: email is intentionally NOT selected here. It's still matched
-    // against in the OR clause below so search-by-email still works, but any
-    // authenticated user being able to read back other users' emails would
-    // turn this endpoint into an email enumeration tool.
+   
     select: { id: true, name: true, profile: true },
     take: 20,
   });
