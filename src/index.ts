@@ -1,14 +1,14 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-
+import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
 import connectionsRoutes from "./routes/connections.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT ;
 
 app.use(
   cors({
@@ -17,11 +17,12 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use("/auth", authRoutes);
-app.use("/", profileRoutes); // exposes /profile, /users/:id, /users/search
+app.use("/", profileRoutes);
 app.use("/connections", connectionsRoutes);
 
 // 404 fallback

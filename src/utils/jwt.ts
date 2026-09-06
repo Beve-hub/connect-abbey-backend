@@ -5,11 +5,6 @@ export interface JwtPayload {
   userId: string;
   email: string;
 }
-
-// Refresh tokens additionally carry a `jti` (JWT ID) so each one maps to a
-// single row in the RefreshToken table. That row — not just the signature —
-// is the source of truth for whether the token is still alive, which is what
-// lets us actually kill a session on logout instead of waiting out the expiry.
 export interface RefreshJwtPayload extends JwtPayload {
   jti: string;
 } 
@@ -17,8 +12,7 @@ export interface RefreshJwtPayload extends JwtPayload {
 const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET as string;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET as string;
 
-// Refresh sessions live 24h. Kept as one constant so the JWT's own expiry and
-// the DB row's expiresAt can never drift apart.
+
 export const REFRESH_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 if (!ACCESS_SECRET || !REFRESH_SECRET) {

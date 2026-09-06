@@ -1,7 +1,8 @@
+// src/middleware/auth.ts
 import { NextFunction, Request, Response } from "express";
 import { verifyAccessToken } from "../utils/jwt";
+import { ACCESS_COOKIE_NAME } from "../config/cookies";
 
-// Extend Express's Request type so `req.user` is typed everywhere downstream
 declare global {
   namespace Express {
     interface Request {
@@ -10,19 +11,12 @@ declare global {
   }
 }
 
-/**
- * Protects a route. Expects: Authorization: Bearer <accessToken>
- * On success, attaches { userId, email } to req.user and calls next().
- * On failure, responds 401 and does NOT call next().
- */
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies?.[ACCESS_COOKIE_NAME];
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Missing or malformed Authorization header" });
+  if (!token) {
+    return res.status(401).json({ error: "Missing access token" });
   }
-
-  const token = authHeader.split(" ")[1];
 
   try {
     const payload = verifyAccessToken(token);
@@ -36,20 +30,14 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   }
 }
 
-/**
- * Optional auth: attaches req.user if a valid token is present,
- * but does not block the request if it's missing/invalid.
- * Useful for endpoints like GET /users/:id that behave slightly
- * differently for logged-in vs anonymous callers.
- */
 export function attachUserIfPresent(req: Request, _res: Response, next: NextFunction) {
-  const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith("Bearer ")) {
+  const token = req.cookies?.[ACCESS_COOKIE_NAME];
+  if (token) {
     try {
-      const payload = verifyAccessToken(authHeader.split(" ")[1]);
+      const payload = verifyAccessToken(token);
       req.user = { userId: payload.userId, email: payload.email };
     } catch {
-      // ignore invalid token, just proceed unauthenticated
+      // ignore invalid token, proceed unauthenticated
     }
   }
   next();

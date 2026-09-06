@@ -6,10 +6,7 @@ import {
   signRefreshToken,
 } from "../utils/jwt";
 
-/**
- * Issues a brand new refresh session for a user (used on signup/login, and
- * again on every successful /auth/refresh as part of rotation).
- */
+
 export async function issueRefreshToken(userId: string, email: string) {
   const jti = generateJti();
   const expiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
@@ -21,11 +18,7 @@ export async function issueRefreshToken(userId: string, email: string) {
   return signRefreshToken({ userId, email, jti });
 }
 
-/**
- * Verifies a refresh token's signature AND checks it against the DB record,
- * so a token that's been logged-out, rotated away, or expired is rejected
- * even if the JWT signature itself would still technically be valid.
- */
+
 export async function getActiveRefreshSession(payload: RefreshJwtPayload) {
   const record = await prisma.refreshToken.findUnique({ where: { jti: payload.jti } });
 
@@ -45,7 +38,6 @@ export async function revokeRefreshToken(jti: string) {
   });
 }
 
-/** Used on password-reset / "log out everywhere" type flows, if you add one. */
 export async function revokeAllRefreshTokensForUser(userId: string) {
   await prisma.refreshToken.updateMany({
     where: { userId, revokedAt: null },
