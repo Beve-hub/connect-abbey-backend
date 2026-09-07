@@ -8,11 +8,11 @@ import connectionsRoutes from "./routes/connections.routes";
 import { errorHandler } from "./middleware/errorHandler";
 
 const app = express();
-const PORT = process.env.PORT ;
+const PORT = process.env.PORT;
 
 app.use(
   cors({
-    origin: "*",
+    origin: (origin, callback) => callback(null, true), 
     credentials: true,
   })
 );
