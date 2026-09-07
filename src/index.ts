@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
 import connectionsRoutes from "./routes/connections.routes";
 import { errorHandler } from "./middleware/errorHandler";
+import usersRouter from "./routes/users.routes";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -24,6 +25,7 @@ app.get("/health", (_req, res) => res.json({ status: "ok" }));
 app.use("/auth", authRoutes);
 app.use("/", profileRoutes);
 app.use("/connections", connectionsRoutes);
+app.use("/users", usersRouter);
 
 // 404 fallback
 app.use((req, res) => {
