@@ -24,8 +24,8 @@ function setAuthCookies(res: Response, accessToken: string, refreshToken: string
 }
 
 function clearAuthCookies(res: Response) {
-  res.clearCookie(ACCESS_COOKIE_NAME, { path: accessCookieOptions.path });
-  res.clearCookie(REFRESH_COOKIE_NAME, { path: refreshCookieOptions.path });
+  res.clearCookie(ACCESS_COOKIE_NAME, accessCookieOptions);
+  res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions);
 }
 
 export async function signup(req: Request, res: Response) {
@@ -116,8 +116,7 @@ export async function logout(req: Request, res: Response) {
       const payload = verifyRefreshToken(refreshToken);
       await revokeRefreshToken(payload.jti);
     } catch {
-      // token already invalid — nothing to revoke
-    }
+   }
   }
 
   clearAuthCookies(res);
