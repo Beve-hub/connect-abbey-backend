@@ -11,9 +11,20 @@ import usersRouter from "./routes/users.routes";
 const app = express();
 const PORT = process.env.PORT;
 
+const allowedOrigins = [process.env.F_URL, process.env.LF_URL].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: (origin, callback) => callback(null, true), 
+    origin: (origin, callback) => {
+      // Allow non-browser tools (curl, Postman) that send no Origin header at all
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    },
     credentials: true,
   })
 );
